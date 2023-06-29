@@ -1,0 +1,12 @@
+--- native/src/seal/context.cpp
++++ native/src/seal/context.cpp
+@@ -477,7 +477,8 @@ namespace seal
+         // more than one modulus in coeff_modulus. This is equivalent to expanding
+         // the chain by one step. Otherwise, we set first_parms_id_ to equal
+         // key_parms_id_.
+-        if (!context_data_map_.at(key_parms_id_)->qualifiers_.parameters_set() || parms.coeff_modulus().size() == 1)
++        if (!context_data_map_.at(key_parms_id_)->qualifiers_.parameters_set() || parms.coeff_modulus().size() == 1 ||
++            parms.n_special_primes() == 0)
+         {
+             first_parms_id_ = key_parms_id_;
+         }

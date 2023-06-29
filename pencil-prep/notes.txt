@@ -1,0 +1,51 @@
+3 linear (576-64-64-10) 1h21min21s 1 train epoch, test acc = 86.48
+
+Using (32, 1, 28, 28) -> Sphinx-Mnist
+    Protect diff: 7.1s / iteration
+    Delphi vanilla: 5.7s / iteration
+
+
+Alexnet/full
+    Protect diff: 1349
+    Delphi vanilla: 1220
+
+alexnet fe + 2layer fc classifier
+    < 12hr -> 0.80Acc on cifar10
+
+Test correct, with Ransom Tensor Bound = 512, Polydegree = 8192
+Principal: Prepare use level=-3, Online use level=-2
+(A) = No delphi batch; (B) = Delphi batch; (C) = Difference protection
+
+Linear (16, 512) -> (16, 10)
+    crypto_gpu_cheetah (A) (B) (C)
+    crypto_gpu         (A) (B) (C)
+    crypto_gpu_old     (A) (B) (C)
+    crypto_gpu_ezpu    (A) (B) (C)
+    crypto_plain       (A) (B) (C)
+
+Conv2d (1, 16, 22, 22), kernel (16, 1, 5, 5)
+    (Pass condition: dW<1)
+    crypto_gpu_cheetah (A) (B) (C)
+    crypto_gpu         (A) (B) (C)
+    crypto_plain       (A) (B) (C)
+
+Batchnorm (8, 16, 64, 64)
+    crypto_gpu_cheetah (A) (B) (C)
+    crypto_gpu         (A) (B) (C)
+    crypto_plain       (A) (B) (C)
+
+1) the vector enc, muls could be established on only one layer HE
+2) calculate gradients of W, [hx+hy] could be transfered together
+relu-field line 142: relu
+	calculated drelu first
+	use this to calculate relu (based on ots)
+	we can change this into backward version
+conv2d blocking against channel splitting?
+
+
+ReLU Comm	Linear Comm	Time	Bs	Comm	Time
+NN1	0.620981	73.683	1.2022	32	2.321999406	0.03756875
+NN2	18.3033	114.99	2.86	32	4.165415625	0.089375
+NN3	337.566	727.207	42.4243	64	16.63707813	0.662879688
+NN5	2.719	317.356	7.912	64	5.001171875	0.123625
+NN6	2.719	172.67	2.91	64	2.740453125	0.04546875

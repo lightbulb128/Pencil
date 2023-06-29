@@ -1,0 +1,43 @@
+--- native/src/seal/encryptionparams.h
++++ native/src/seal/encryptionparams.h
+@@ -205,6 +205,16 @@ namespace seal
+             compute_parms_id();
+         }
+ 
++        inline void set_n_special_primes(int n)
++        {
++            // Check that a scheme is set
++            if (n != 0 && n != 1)
++            {
++                throw std::logic_error("set_n_special_primes: n is not supported");
++            }
++
++            n_special_primes_ = static_cast<size_t>(n);
++        }
+         /**
+         Sets the plaintext modulus parameter. The plaintext modulus is an integer
+         modulus represented by the Modulus class. The plaintext modulus
+@@ -305,6 +315,14 @@ namespace seal
+             return random_generator_;
+         }
+ 
++        /**
++        Returns the number of special primes.
++        */
++        SEAL_NODISCARD inline size_t n_special_primes() const noexcept
++        {
++            return n_special_primes_;
++        }
++
+         /**
+         Compares a given set of encryption parameters to the current set of
+         encryption parameters. The comparison is performed by comparing the
+@@ -490,6 +508,8 @@ namespace seal
+ 
+         scheme_type scheme_;
+ 
++        std::size_t n_special_primes_ = 1;
++
+         std::size_t poly_modulus_degree_ = 0;
+ 
+         std::vector<Modulus> coeff_modulus_{};

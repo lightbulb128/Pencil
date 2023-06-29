@@ -1,0 +1,8 @@
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -63,4 +63,4 @@ install(DIRECTORY cmake/ DESTINATION cmake/)
+ install(TARGETS ${NAME} DESTINATION lib)
+ 
+ ENABLE_TESTING()
+-ADD_SUBDIRECTORY(test)
++#ADD_SUBDIRECTORY(test)
