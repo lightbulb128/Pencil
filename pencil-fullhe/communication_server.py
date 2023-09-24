@@ -33,9 +33,10 @@ class ServerCommunication:
     self.modulus = 1 << self.cheetah.dbits()
 
   def close_connection(self):
-    self.cheetah.endComputation()
+    x = self.cheetah.endComputation() + self.recv()
     self.sci.endComputation()
     self.connection.close()
+    return x / 1024 / 1024
 
   def send(self, obj):
     obj_bytes = pickle.dumps(obj)

@@ -1,0 +1,4 @@
+fullhe_*.sh
+!fullhe_trivial.sh
+prep_*.sh
+!prep_trivial.sh

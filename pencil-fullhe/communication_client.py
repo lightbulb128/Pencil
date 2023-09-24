@@ -29,6 +29,7 @@ class ClientCommunication:
     self.modulus = 1 << self.cheetah.dbits()
   
   def close_connection(self):
+    self.send(self.transferred)
     self.cheetah.endComputation()
     self.sci.endComputation()
     self.connection.close()

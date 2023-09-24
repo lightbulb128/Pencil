@@ -43,6 +43,8 @@ if __name__ == "__main__":
     batchsize = input_shape[0]
     timed = time.time()
     model_priv.prepare(input_shape)
+    prepare_comm = comm.recv()
+    print("Preparation comm: {:.3f} MB".format(prepare_comm / 1024 / 1024))
     print("Prepare used {0}s".format(time.time() - timed))
     print("Prepared")
     
@@ -71,7 +73,7 @@ if __name__ == "__main__":
         optim_priv.zero_grad()
         x_grad = model_priv.backward(partial)
         optim_priv.step()
-        print("Time =", time.time()-timed)
+        print("Step Time =", time.time()-timed)
 
         inputs = torch.tensor(comm.recv(), device=config.DEVICE, requires_grad=True)
         labels = torch.tensor(comm.recv(), device=config.DEVICE)
@@ -100,7 +102,6 @@ if __name__ == "__main__":
     model_priv.eval()
     model_torch.eval()
     model_retorch.eval()
-    print("test he")
     while True:
         direction = comm.recv()
         if direction == "finish":
@@ -129,7 +130,4 @@ if __name__ == "__main__":
             print("  pred diff (r-p) = ", d)
             comm.send(output)
 
-    
-
-
-    comm.close_connection()
+    print("Step communication: {:.3f} MB".format(comm.close_connection()))

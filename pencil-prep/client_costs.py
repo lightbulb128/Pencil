@@ -23,7 +23,7 @@ if __name__ == "__main__":
     comm.clear_accumulation()
     comm.counter = 1
     model.prepare(input_shape)
-    print("Preparation transmission (MB):", comm.get_average_transmission())
+    comm.send(comm.transferred)
 
     train_data, test_data = dataloader.load_dataset(dataset_name)
     test_dataloader = dataloader.BatchLoader(test_data, batchsize, True)
@@ -72,8 +72,6 @@ if __name__ == "__main__":
         if not (x_grad is None):
             comm.send(x_grad)
 
-    
-    print("test he")
     correct = 0
     total = 0
     # for _ in range(len(test_dataloader)):
