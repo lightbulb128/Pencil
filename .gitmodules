@@ -4,3 +4,6 @@
 [submodule "seal-cuda"]
 	path = seal-cuda
 	url = https://github.com/lightbulb128/troy.git
+[submodule "EzPC"]
+	path = EzPC
+	url = https://github.com/lightbulb128/EzPC.git
