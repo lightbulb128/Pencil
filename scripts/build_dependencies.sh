@@ -10,5 +10,5 @@ cd ..
 
 cd pencil-prep
 bash gather_tools.sh
-mkdir preprocess
+mkdir -p preprocess
 cd ..
