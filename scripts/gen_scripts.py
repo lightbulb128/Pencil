@@ -14,8 +14,8 @@ def end_to_end(
 
 def costs(name, preset):
     s_args = f"-p {preset}"
-    s_cmd = f"{python} server_costs.py {s_args} > logs/{name}.server.log &"
-    c_cmd = f"{python} client_costs.py > logs/{name}.client.log &"
+    s_cmd = f"{python} server_costs.py {s_args} > logs/{name}.log &"
+    c_cmd = f"{python} client_costs.py > /dev/null &"
     return [s_cmd, "sleep 5", c_cmd]
 
 def change_directory(directory, inner_commands):
