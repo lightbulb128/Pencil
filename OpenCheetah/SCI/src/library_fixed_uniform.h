@@ -102,7 +102,7 @@ void ScaleUp(int32_t size, intType *arr, int32_t sf);
 
 void StartComputation();
 
-void EndComputation(bool printInfo=true);
+uint64_t EndComputation(bool printInfo=true);
 
 intType SecretAdd(intType x, intType y);
 

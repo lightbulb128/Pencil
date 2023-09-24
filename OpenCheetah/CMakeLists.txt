@@ -12,10 +12,12 @@ add_compile_options(-D_GLIBCXX_USE_CXX11_ABI=0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 ## Dependencies
+find_package(zstd REQUIRED PATHS ${CMAKE_BINARY_DIR}/lib/cmake/zstd)
+find_package(HEXL REQUIRED PATHS ${CMAKE_BINARY_DIR}/lib/cmake/hexl-1.2.2)
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Eigen3 3.3.3 REQUIRED)
-find_package(SEAL REQUIRED)
+find_package(SEAL REQUIRED PATHS ${CMAKE_BINARY_DIR}/lib/cmake/SEAL-3.7)
 find_package(emp-tool REQUIRED)
 find_package(emp-ot REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR}

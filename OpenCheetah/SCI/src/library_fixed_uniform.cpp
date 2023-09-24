@@ -1992,7 +1992,7 @@ void StartComputation() {
             << std::endl;
 }
 
-void EndComputation(bool printInfo) {
+uint64_t EndComputation(bool printInfo) {
   auto endTimer = std::chrono::high_resolution_clock::now();
   auto execTimeInMilliSec =
       std::chrono::duration_cast<std::chrono::milliseconds>(endTimer -
@@ -2261,6 +2261,7 @@ void EndComputation(bool printInfo) {
     io->send_data(&SqrtCommSent, sizeof(uint64_t));
     io->send_data(&NormaliseL2CommSent, sizeof(uint64_t));
   }
+  return totalComm + totalCommClient;
 #endif
 }
 

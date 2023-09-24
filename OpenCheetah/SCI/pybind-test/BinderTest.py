@@ -94,8 +94,9 @@ class ServerCommunication:
 
 BFV_POLY_DEGREE = 8192
 BFV_Q_BITS = (60, 60, 60)
-PLAIN_MODULUS = 1 << 59
-SCALE_BITS = 12
+PLAIN_MODULUS_BITS = 41
+PLAIN_MODULUS = 1 << PLAIN_MODULUS_BITS
+SCALE_BITS = 10
 SCALE = 1<<SCALE_BITS
 
 def to_field(a: np.ndarray, scale=SCALE):
@@ -135,12 +136,22 @@ if __name__ == "__main__":
     party = args.p
     assert(party == 1 or party == 2)
     if party == 1:
-        import sci_provider_alice as sci_provider
+        if PLAIN_MODULUS_BITS == 37:
+          import cheetah_provider_alice_37 as sci_provider
+        elif PLAIN_MODULUS_BITS == 41:
+          import cheetah_provider_alice_41 as sci_provider
+        else:
+          import cheetah_provider_alice as sci_provider
         comm = ServerCommunication()
         comm.listen()
         comm.accept_connection()
     else:
-        import sci_provider_bob as sci_provider
+        if PLAIN_MODULUS_BITS == 37:
+          import cheetah_provider_bob_37 as sci_provider
+        elif PLAIN_MODULUS_BITS == 41:
+          import cheetah_provider_bob_41 as sci_provider
+        else:
+          import cheetah_provider_bob as sci_provider
         comm = ClientCommunication()
         comm.connect()
 
@@ -150,9 +161,11 @@ if __name__ == "__main__":
         comm.send(x)
         return field_add(x, comm.recv())
 
-    provider = sci_provider.SCIProvider(SCALE_BITS)
+    provider = sci_provider.CheetahProvider(SCALE_BITS)
     provider.startComputation()
     n = 5
+
+    print("[Relu]")
     r = np.random.rand(n) * 2 - 1
     print("x    =", r)
     r_field = to_field(r)
@@ -162,6 +175,8 @@ if __name__ == "__main__":
     result = to_decimal(result)
     print("relu =", result)
 
+
+    print("[Drelumul]")
     r = np.random.rand(n) * 2 - 1
     print("d    =", r)
     r_field = to_field(r)
@@ -171,7 +186,8 @@ if __name__ == "__main__":
     result = to_decimal(result)
     print("back =", result)
 
-    
+
+    print("[Relu]")
     r = np.random.rand(n) * 2 - 1
     print("x    =", r)
     r_field = to_field(r, SCALE*SCALE)
@@ -181,6 +197,7 @@ if __name__ == "__main__":
     result = to_decimal(result)
     print("relu =", result)
     
+    print("[Truncate]")
     r = np.random.rand(n) * 2 - 1
     print("x    =", r)
     r_field = to_field(r, SCALE*SCALE)
@@ -191,15 +208,38 @@ if __name__ == "__main__":
     print("trun =", result)
 
     
+    print("[Divide]")
     r = np.random.rand(n) * 2 - 1
     print("x    =", r)
     r_field = to_field(r, SCALE)
     r_shares = get_shares(r_field)
-    result = provider.divide(r_shares[party-1], 6)
+    result = provider.divide(r_shares[party-1], 155)
     result = reconstruct(result)
     result = to_decimal(result)
     print("divd =", result)
     
+    
+    print("[Double scale test]")
+    r = np.random.rand(n) * 2 - 1
+    print("x    =", r)
+    r_field = to_field(r, SCALE * SCALE)
+    r_shares = get_shares(r_field)
+    result = provider.divide(r_shares[party-1], SCALE)
+    result = reconstruct(result)
+    result = to_decimal(result)
+    print("divd =", result)
+
+
+    print("[Max]")
+    n = 12
+    r = np.random.rand(n) * 2 - 1
+    print("x    =", r)
+    r_field = to_field(r, SCALE)
+    r_shares = get_shares(r_field)
+    result = provider.max(r_shares[party-1], 4)
+    result = reconstruct(result)
+    result = to_decimal(result)
+    print("divd =", result)
     
 
     provider.endComputation()

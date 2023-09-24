@@ -267,16 +267,16 @@ void Div(int32_t I, int32_t J, int32_t shrA, int32_t shrB, int32_t shrC,
          int32_t bwA, int64_t *A, int64_t *B, int64_t *C);
 
 // Athos Wrappers
-#ifdef SCI_OT
-void Sigmoid(int32_t I, int32_t J, int32_t scale_in, int32_t scale_out,
-             int32_t bwA, int32_t bwB, uint64_t *A, uint64_t *B);
+// #ifdef SCI_OT
+// void Sigmoid(int32_t I, int32_t J, int32_t scale_in, int32_t scale_out,
+//              int32_t bwA, int32_t bwB, uint64_t *A, uint64_t *B);
 
-void TanH(int32_t I, int32_t J, int32_t scale_in, int32_t scale_out,
-          int32_t bwA, int32_t bwB, uint64_t *A, uint64_t *B);
+// void TanH(int32_t I, int32_t J, int32_t scale_in, int32_t scale_out,
+//           int32_t bwA, int32_t bwB, uint64_t *A, uint64_t *B);
 
-void Sqrt(int32_t I, int32_t J, int32_t scale_in, int32_t scale_out,
-          int32_t bwA, int32_t bwB, bool inverse, uint64_t *A, uint64_t *B);
-#endif
+// void Sqrt(int32_t I, int32_t J, int32_t scale_in, int32_t scale_out,
+//           int32_t bwA, int32_t bwB, bool inverse, uint64_t *A, uint64_t *B);
+// #endif
 
 #ifdef SCI_HE
 void Sigmoid(int32_t I, int32_t J, int32_t scale_in, int32_t scale_out,

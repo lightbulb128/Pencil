@@ -125,6 +125,3 @@ $RECYCLE.BIN/
 
 build
 # End of https://www.toptal.com/developers/gitignore/api/cmake,linux,macos,windows,c++
-
-.vscode/
-sqnet_demo/

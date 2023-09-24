@@ -71,9 +71,9 @@ Also, you can use our throttle script to mimic a remote network condition within
 
 
 
-# Pencil edition
+# pLimo edition
 
-Added several utilities for Pencil. Also added encapsulation for python.
+Added several utilities for pLimo. Also added encapsulation for python.
 
 Usage (after OpenCheetah itself has been compiled)
 ```

@@ -915,8 +915,8 @@ void MaxPool2D(uint64_t *A, int32_t I, int32_t J, int32_t bwA, int32_t bwB,
 #ifdef LOG_LAYERWISE
   auto temp = TIMER_TILL_NOW;
   MaxpoolTimeInMilliSec += temp;
-  std::cout << "Time in sec for current MaxPool = " << (temp / 1000.0)
-            << std::endl;
+  // std::cout << "Time in sec for current MaxPool = " << (temp / 1000.0)
+  //           << std::endl;
   uint64_t curComm;
   FIND_ALL_IO_TILL_NOW(curComm);
   MaxpoolCommSent += curComm;
@@ -2184,7 +2184,7 @@ void MaxPool2D(int I, int J, int bwA, int bwB, int64_t *A, int64_t *B) {
   cleartext_MaxPool2D(A, I, J, B);
 #else
 #ifdef LOG_LAYERWISE
-  std::cout << ctr++ << ". MaxPool2D (" << I << " x " << J << ")" << std::endl;
+  // std::cout << ctr++ << ". MaxPool2D (" << I << " x " << J << ")" << std::endl;
 #endif
 
   uint64_t *tmpA = new uint64_t[I * J];

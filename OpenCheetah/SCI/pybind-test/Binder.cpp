@@ -14,17 +14,23 @@ namespace py = pybind11;
 PYBIND11_MAKE_OPAQUE(std::vector<uint64_t>);
 PYBIND11_MAKE_OPAQUE(std::vector<uint8_t>);
 
-#ifdef BIT41
+#if defined(BIT41)
     #ifdef PARTY_ALICE
-        #define PACKAGE_NAME sci_provider_alice_41
+        #define PACKAGE_NAME cheetah_provider_alice_41
     #else
-        #define PACKAGE_NAME sci_provider_bob_41
+        #define PACKAGE_NAME cheetah_provider_bob_41
+    #endif
+#elif defined(BIT37)
+    #ifdef PARTY_ALICE
+        #define PACKAGE_NAME cheetah_provider_alice_37
+    #else
+        #define PACKAGE_NAME cheetah_provider_bob_37
     #endif
 #else
     #ifdef PARTY_ALICE
-        #define PACKAGE_NAME sci_provider_alice
+        #define PACKAGE_NAME cheetah_provider_alice
     #else
-        #define PACKAGE_NAME sci_provider_bob
+        #define PACKAGE_NAME cheetah_provider_bob
     #endif
 #endif
 
@@ -66,25 +72,29 @@ py::array_t<uint8_t> getBufferFromVector(const std::vector<uint8_t>& vec) {
 
 PYBIND11_MODULE(PACKAGE_NAME, m) {
 
-    py::class_<SCIProvider>(m, "SCIProvider")
+    py::class_<CheetahProvider>(m, "CheetahProvider")
         .def(py::init<int>())
-        .def("startComputation", &SCIProvider::startComputation)
-        .def("endComputation", &SCIProvider::endComputation)
-        .def("dbits", &SCIProvider::dbits)
-        .def("relu", [](SCIProvider& self, py::array_t<uint64_t> share, bool truncate) {
+        .def("startComputation", &CheetahProvider::startComputation)
+        .def("endComputation", &CheetahProvider::endComputation)
+        .def("dbits", &CheetahProvider::dbits)
+        .def("relu", [](CheetahProvider& self, py::array_t<uint64_t> share, bool truncate) {
             auto p = self.relu(getVectorFromBuffer(share), truncate);
             return std::make_pair(getBufferFromVector(std::move(p.first)), getBufferFromVector(std::move(p.second)));
         })
-        .def("drelumul", [](SCIProvider& self, py::array_t<uint64_t> share, py::array_t<uint8_t> drelu) {
+        .def("drelumul", [](CheetahProvider& self, py::array_t<uint64_t> share, py::array_t<uint8_t> drelu) {
             auto ret = self.drelumul(getVectorFromBuffer(share), getVectorFromBuffer(drelu));
             return getBufferFromVector(std::move(ret));
         })
-        .def("truncate", [](SCIProvider& self, py::array_t<uint64_t> share) {
+        .def("truncate", [](CheetahProvider& self, py::array_t<uint64_t> share) {
             auto ret = self.truncate(getVectorFromBuffer(share));
             return getBufferFromVector(std::move(ret));
         })
-        .def("divide", [](SCIProvider& self, py::array_t<uint64_t> share, uint64_t divisor) {
+        .def("divide", [](CheetahProvider& self, py::array_t<uint64_t> share, uint64_t divisor) {
             auto ret = self.divide(getVectorFromBuffer(share), divisor);
+            return getBufferFromVector(std::move(ret));
+        })
+        .def("max", [](CheetahProvider& self, py::array_t<uint64_t> share, size_t result_count) {
+            auto ret = self.max(getVectorFromBuffer(share), result_count);
             return getBufferFromVector(std::move(ret));
         })
     ;

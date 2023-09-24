@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <library_fixed_uniform.h>
+#include <library_fixed.h>
 
 #if not defined(PARTY_ALICE) and not defined(PARTY_BOB)
     #define PARTY_ALICE
@@ -21,25 +21,25 @@ int party = 2;
 int party = 1;
 #endif
 
-int port = 32000;
+int port = 31000;
 std::string address = "127.0.0.1";
 int num_threads = 4;
 int32_t bitlength = BIT_LENGTH;
 
-class SCIProvider {
+class CheetahProvider {
 
     int sf;
 
 public:
 
-    SCIProvider(int sf): sf(sf) {}
+    CheetahProvider(int sf): sf(sf) {}
 
     void startComputation() {
         StartComputation();
     }
 
-    void endComputation() {
-        EndComputation(false);
+    uint64_t endComputation() {
+        return EndComputation(false);
     }
 
     int dbits() {
@@ -75,6 +75,28 @@ public:
         long n = share.size();
         Divide(n, share.data(), divisor);
         return share;
+    }
+
+    std::vector<uint64_t> sqrt(std::vector<uint64_t> share, int64_t scale_in, int64_t scale_out, bool inverse) {
+        // This does not work.
+        long n = share.size();
+        std::vector<uint64_t> ret(n);
+        Sqrt(1, n, scale_in, scale_out, bitlength, bitlength, inverse, share.data(), ret.data());
+        return ret;
+    }
+
+    std::vector<uint64_t> elementwise_multiply(std::vector<uint64_t> share1, std::vector<uint64_t> share2) {
+        long n = share1.size();
+        std::vector<uint64_t> ret(n);
+        ElemWiseSecretSharedVectorMult(n, share1.data(), share2.data(), ret.data());
+        return ret;
+    }
+
+    std::vector<uint64_t> max(std::vector<uint64_t> share1, size_t result_count) {
+        long n = share1.size(); assert(n % result_count == 0);
+        std::vector<uint64_t> ret(result_count);
+        MaxPool2D(result_count, n/result_count, bitlength, bitlength, (int64_t*)share1.data(), (int64_t*)ret.data());
+        return ret;
     }
 
 };
