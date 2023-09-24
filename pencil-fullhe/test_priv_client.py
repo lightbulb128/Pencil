@@ -1,5 +1,5 @@
 import model
-from client_modules_switch import client_modules
+import client_modules
 import communication_client
 from crypto_switch import cryptography
 import dataloader

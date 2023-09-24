@@ -48,7 +48,7 @@ if __name__ == "__main__":
     else:
         train_dataloader = dataloader.BatchLoader(train_data, batchsize, True)
 
-    optim = optimizer.SGDMomentum(model.parameters(), 5e-2, 0.8)
+    optim = optimizer.SGDMomentum(model.parameters(), 2e-2, 0.8)
     optim.silence()
 
     # train

@@ -16,12 +16,16 @@ if __name__ == "__main__":
     parser.add_argument("-p", type=str, default="mnist_aby3") # preset = model_name
     parser.add_argument("-n", type=float, default=0) # dp noise levels, 0 to disable
     parser.add_argument("-C", type=float, default=8) # estimated gradient bound
+    parser.add_argument("-o", type=str, default="SGD") # optimizer
+    parser.add_argument("-om", type=float, default=0.8) # optimizer momentum, only for SGD
+    parser.add_argument("-lr", type=float, default=1e-2) # learning rate
     args = parser.parse_args()
     model_name = args.p
 
     print(f"Model   = {args.p}")
     print(f"Noise   = {args.n}")
     print(f"Cbound  = {args.C}")
+    print(f"All args = {args}")
 
     # establish connection
     comm = communication_server.ServerCommunication()
@@ -54,8 +58,17 @@ if __name__ == "__main__":
     print("Server: Test dataset loaded")
 
     # set up optimizer
-    optim = optimizer.SGDMomentum(model.parameters(), 1e-2, 0.8)
-    optim.silence()
+    optimizer_name = args.o
+    optimizer_momentum = args.om
+    learning_rate = args.lr
+    if optimizer_name == "SGD":
+        if optimizer_momentum == 0:
+            optim = optimizer.SGD(model.parameters(), learning_rate)
+        else:
+            optim = optimizer.SGDMomentum(model.parameters(), learning_rate, optimizer_momentum)
+    elif optimizer_name == "Adam":
+        optim = optimizer.Adam(model.parameters(), learning_rate)
+    # optim.silence()
     optim.estimated_bound = args.C
     optim.noise_level = args.n
     optim.batchsize = batchsize

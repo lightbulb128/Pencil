@@ -2,11 +2,14 @@ import math
 import numpy as np
 import pickle
 
-def wipe_dangerous_grad(parameters, threshold=10):
+DANGEROUS_GRAD_THRESHOLD = 4
+DANGEROUS_VALUE_THRESHOLD = 0.5
+
+def wipe_dangerous_grad(parameters, threshold=DANGEROUS_GRAD_THRESHOLD):
   for parameter in parameters:
     parameter.grad = np.where(np.abs(parameter.grad) > threshold, 0, parameter.grad)
 
-def wipe_dangerous_value(parameters, threshold=10):
+def wipe_dangerous_value(parameters, threshold=DANGEROUS_VALUE_THRESHOLD):
   for parameter in parameters:
     parameter.value = np.where(parameter.value > threshold, threshold, parameter.value)
     parameter.value = np.where(parameter.value < -threshold, -threshold, parameter.value)
@@ -20,13 +23,39 @@ class Optimizer:
   def load(self, f): pass
   def reset_parameters(self, parameters): 
     self.parameters = parameters
+  def report_max_values(self):
+      max_value = 0
+      max_i = -1
+      for i, parameter in enumerate(self.parameters):
+        max_this = np.max(np.abs(parameter.grad))
+        if max_this > max_value: 
+          max_value = max_this
+          max_i = i
+      print("Optimizer: maxgrad =", max_value, f"({max_i})")
+      max_value = 0
+      max_i = -1
+      for i, parameter in enumerate(self.parameters):
+        max_this = np.max(np.abs(parameter.value))
+        if max_this > max_value: 
+          max_value = max_this
+          max_i = i
+      print("Optimizer: maxvalue =", max_value, f"({max_i})")
 
 class SGD(Optimizer):
   def __init__(self, parameters, learning_rate):
     self.parameters = parameters
     self.learning_rate = learning_rate
     self.weight_decay = 0
+    self.silent = False
+
+  def silence(self):
+    self.silent = True
+    
   def step(self):
+    
+    if not self.silent:
+      self.report_max_values()
+
     for each in self.parameters: 
       each.value *= (1 - self.learning_rate * self.weight_decay)
       each.value -= each.grad * self.learning_rate
@@ -47,25 +76,10 @@ class SGDMomentum(Optimizer):
   def step(self):
     
     if not self.silent:
-      max_value = 0
-      max_i = -1
-      for i, parameter in enumerate(self.parameters):
-        max_this = np.max(np.abs(parameter.grad))
-        if max_this > max_value: 
-          max_value = max_this
-          max_i = i
-      print("Optimizer: maxgrad =", max_value, f"({max_i})")
-      max_value = 0
-      max_i = -1
-      for i, parameter in enumerate(self.parameters):
-        max_this = np.max(np.abs(parameter.value))
-        if max_this > max_value: 
-          max_value = max_this
-          max_i = i
-      print("Optimizer: maxvalue =", max_value, f"({max_i})")
+      self.report_max_values()
 
     # keep it safe
-    wipe_dangerous_grad(self.parameters, 4)
+    wipe_dangerous_grad(self.parameters)
 
     if self.start_up:
       self.b = [parameter.grad.copy() for parameter in self.parameters]
@@ -79,6 +93,8 @@ class SGDMomentum(Optimizer):
     max_i = -1
     for i, (b, parameter) in enumerate(zip(self.b, self.parameters)):
       parameter.value -= self.learning_rate * b
+    
+    wipe_dangerous_value(self.parameters)
 
   def save(self, f):
     pickle.dump(self.start_up, f)
@@ -98,7 +114,15 @@ class Adam(Optimizer):
     self.m = [np.zeros_like(a.value, dtype=a.value.dtype) for a in parameters]
     self.v = [np.zeros_like(a.value, dtype=a.value.dtype) for a in parameters]
     self.weight_decay = 0
+
+  def silence(self):
+    pass
+
   def step(self):
+
+    if not self.silent:
+      self.report_max_values()
+
     self.time += 1
     for i, parameter in enumerate(self.parameters):
       self.m[i] *= self.beta1
@@ -116,6 +140,7 @@ class Adam(Optimizer):
       # print("optim d", denom.flatten()[0])
 
       parameter.value -= step_size * self.m[i] / denom
+    wipe_dangerous_grad(self.parameters, 4)
 
 
   def save(self, f):

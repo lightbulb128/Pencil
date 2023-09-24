@@ -9,13 +9,19 @@ import torch.nn.functional
 import time
 import argparse
 
-def one_hot(x):
-    return torch.nn.functional.one_hot(torch.tensor(x), num_classes=10).numpy()
+def one_hot(x, dataset_name):
+    if "cifar100" in dataset_name:
+        classes = 100
+    elif "agnews" in dataset_name:
+        classes = 4
+    else:
+        classes = 10
+    return torch.nn.functional.one_hot(torch.tensor(x), num_classes=classes).numpy()
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", type=str, default=0) # split, "None" to disable, "p:q" to split into p parts, q ratio of total data are sorted
+    parser.add_argument("-s", type=str, default="None") # split, "None" to disable, "p:q" to split into p parts, q ratio of total data are sorted
     parser.add_argument("-e", type=int, default=10) # epochs
     args = parser.parse_args()
 
@@ -48,6 +54,7 @@ if __name__ == "__main__":
     batchsize = input_shape[0]
     model.prepare(input_shape)
     print("Client: Model preprocessing finished.")
+    print("dataset name = ", dataset_name);
 
     # load data
     train_data, test_data = dataloader.load_dataset(dataset_name)
@@ -101,7 +108,7 @@ if __name__ == "__main__":
 
                 print(f"Loss = {loss:.6f}", "logit max =", np.max(np.abs(output)), f"correct={correct}/{total}")
                 output_softmax = np.exp(output) / np.reshape(np.sum(np.exp(output), axis=1), (-1, 1))
-                output_grad = (output_softmax - one_hot(labels)) / len(labels)
+                output_grad = (output_softmax - one_hot(labels, dataset_name)) / len(labels)
                 output_grad = crypto.to_field(output_grad)
                 model.backward(output_grad)
                 epoch_time += time.time() - timer

@@ -1,11 +1,18 @@
 import os
 import model
-from server_modules_switch import server_modules
+import server_modules
 import communication_server
 from crypto_switch import cryptography
 import torch
+import argparse
 
 if __name__ == "__main__":
+
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", type=str, default="mnist_aby3") # preset = model_name
+    args = parser.parse_args()
+    model_name = args.p
 
     # establish connection
     comm = communication_server.ServerCommunication()
@@ -19,7 +26,7 @@ if __name__ == "__main__":
     print("Server: Cryptography context created.")
     
     # load model
-    model_name, model = model.get_model()
+    model_name, model = model.get_model(args.p)
     model.load_state_dict(torch.load(os.path.join("./checkpoints", model_name)))
     model = server_modules.server_model_from_pytorch(model, crypto, comm)
     model_description = model.describe()

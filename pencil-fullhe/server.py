@@ -67,8 +67,14 @@ if __name__ == "__main__":
     # input_shape = (64, 64, 56, 56)
     # model_name, model_torch = "", torch.nn.Conv2d(64, 3, 3)
 
-    input_shape = (64, 64, 56, 56)
-    model_name, model_torch = "", torch.nn.Conv2d(64, 3, 3)
+    # input_shape = (64, 64, 56, 56)
+    # model_name, model_torch = "", torch.nn.Conv2d(64, 3, 3)
+    
+    # input_shape = (4, 64, 56, 56)
+    # model_name, model_torch = "", torch.nn.Conv2d(64, 3, 3)
+
+    # input_shape = (4, 8, 56)
+    # model_name, model_torch = "", torch.nn.Conv1d(8, 16, 3)
 
     # input_shape = (3, 10)
     # model_name, model_torch = "", torch.nn.ReLU()
@@ -116,6 +122,9 @@ if __name__ == "__main__":
 
     # input_shape = (4, 8, 6, 9)
     # model_name, model_torch = "", torch.nn.AvgPool2d(3, 2, 1)
+
+    input_shape = (4, 8, 6)
+    model_name, model_torch = "", torch.nn.AvgPool1d(3, 2, 1)
     
     # input_shape = (4, 4)
     # model_name, model_torch = "", torch.nn.Dropout(0.5)
@@ -165,7 +174,7 @@ if __name__ == "__main__":
             outputs_a = layer.forward(outputs_a)
             outputs_reconstructed = cryp.field_mod(outputs_a + comm.recv())
             if isinstance(layer, (
-                server_modules.ReLU, server_modules.AvgPool2d, 
+                server_modules.ReLU, server_modules.AvgPool2d, server_modules.AvgPool1d, 
                 server_modules.Flatten, server_modules.Softmax,
                 server_modules.MultiheadAttention, server_modules.Residual,
                 server_modules.TransformerEncoderLayer,
@@ -239,7 +248,7 @@ if __name__ == "__main__":
             else:
 
                 if isinstance(model, (
-                    server_modules.ReLU, server_modules.AvgPool2d, 
+                    server_modules.ReLU, server_modules.AvgPool2d, server_modules.AvgPool1d, 
                     server_modules.Flatten, server_modules.Softmax,
                     server_modules.ScaledDotProductAttention,
                 )):
@@ -274,8 +283,14 @@ if __name__ == "__main__":
                     print("D(dWout)", absmax(dWout), "[ max", absmax(mWout), "]", "mean", absmean(dWout))
                     print("D(dbout)", absmax(dbout), "[ max", absmax(mbout), "]", "mean", absmean(dbout))
                     return
-
-                if isinstance(model, (server_modules.Conv2dStrided, server_modules.Conv2dPadded)):
+                
+                if isinstance(model, server_modules.Conv1d):
+                    mW = model.inner.weight.grad
+                    d0, d1, d2, d3 = mW.shape
+                    assert(d3 == 1)
+                    mW = np.reshape(mW, (d0, d1, d2))
+                    mb = model.inner.bias.grad
+                elif isinstance(model, (server_modules.Conv2dStrided, server_modules.Conv2dPadded)):
                     mW = model.merged_weight_grad()
                     mb = model.merged_bias_grad()
                 else:

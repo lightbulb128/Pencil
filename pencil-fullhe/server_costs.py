@@ -66,6 +66,8 @@ if __name__ == "__main__":
         output = model_priv.forward(x)
         comm.send(output)
 
+        print("Time =", time.time()-timed)
+
         partial = np.zeros(output.shape)
         partial = cryp.to_field(partial)
         optim_priv.zero_grad()

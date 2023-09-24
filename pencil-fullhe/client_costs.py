@@ -52,6 +52,8 @@ if __name__ == "__main__":
         pred = np.argmax(output, axis=1)
         correct = np.sum(pred == labels)
         total = len(labels)
+        
+        print("Transmission (MB):", comm.get_average_transmission())
 
         loss = torch.nn.functional.cross_entropy(torch.tensor(output), torch.tensor(labels))
         print(f"Loss = {loss:.6f}", "logit max =", np.max(np.abs(output)), f"correct={correct}/{total}")

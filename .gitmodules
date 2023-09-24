@@ -1,0 +1,6 @@
+[submodule "OpenCheetah"]
+	path = OpenCheetah
+	url = https://github.com/lightbulb128/OpenCheetah.git
+[submodule "seal-cuda"]
+	path = seal-cuda
+	url = https://github.com/lightbulb128/troy.git

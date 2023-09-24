@@ -9,8 +9,15 @@ import torch.nn.functional
 import time
 import argparse
 
-def one_hot(x):
-    return torch.nn.functional.one_hot(torch.tensor(x), num_classes=10).numpy()
+def one_hot(x, dataset_name):
+    if "paysim" in dataset_name:
+        classes = 2
+    elif "agnews" in dataset_name:
+        classes = 4
+    else:
+        classes = 10
+    return torch.nn.functional.one_hot(torch.tensor(x), num_classes=classes).numpy()
+
 
 def stat_labels(l):
     ml = np.max(l)
@@ -105,7 +112,7 @@ if __name__ == "__main__":
 
                 print(f"Loss = {loss:.6f}", "logit max =", np.max(np.abs(output)), f"correct={correct}/{total}")
                 output_softmax = np.exp(output) / np.reshape(np.sum(np.exp(output), axis=1), (-1, 1))
-                output_grad = (output_softmax - one_hot(labels)) / len(labels)
+                output_grad = (output_softmax - one_hot(labels, dataset_name)) / len(labels)
                 output_grad = crypto.to_field(output_grad)
                 model.backward(output_grad)
                 epoch_time += time.time() - timer

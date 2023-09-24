@@ -55,6 +55,7 @@ if __name__ == "__main__":
 
     print([r.requires_grad for r in model.parameters()])
     optimizer = torch.optim.SGD(filter(lambda r:r.requires_grad, model.parameters()), lr, momentum=0.8)
+    # optimizer = torch.optim.Adam(filter(lambda r:r.requires_grad, model.parameters()), lr)
 
     # load data
     train_data, test_data = dataloader.load_dataset(dataset_name)
@@ -79,7 +80,6 @@ if __name__ == "__main__":
         print(f"Epoch {epoch}")
         # print([r.requires_grad for r in model.parameters()])
         for step in tqdm(range(len(train_dataloader))):
-            # if step > 50: break
             optimizer.zero_grad()
             skip_train_step = False
             if SPLIT:

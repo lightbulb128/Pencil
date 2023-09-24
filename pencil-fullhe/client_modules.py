@@ -570,6 +570,33 @@ class Conv2dPadded(ClientModule):
     return self.output_shape
 
 
+class Conv1d(ClientModule):
+
+  def __init__(self, crypto: crypto.EncryptionUtils, comm: communication_client.ClientCommunication, input_channels, output_channels, kernel_size, bias=True):
+    super().__init__()
+    self.crypto = crypto
+    self.comm = comm
+    self.input_channels = input_channels
+    self.output_channels = output_channels
+    self.kernel_size = kernel_size
+    self.bias = bias
+    self.inner = Conv2d(crypto, comm, input_channels, output_channels, (kernel_size, 1), bias)
+
+  def prepare(self, input_shape):
+    self.input_shape = input_shape
+    batchsize, channels, input_features = input_shape
+    output_shape = self.inner.prepare((batchsize, channels, input_features, 1))
+    self.output_shape = (batchsize, self.output_channels, output_shape[2])
+    return self.output_shape
+  
+  def forward(self, x):
+    x = self.inner.forward(x)
+    return x
+  
+  def backward(self, partial_y):
+    partial_x = self.inner.backward(partial_y)
+    return partial_x
+
 class AvgPool2d(ClientModule):
   
   def __init__(self, crypto, comm, kernel_size, stride=None, padding=0):
@@ -640,6 +667,73 @@ class AvgPool2d(ClientModule):
     y_h = (h + 2*pad - kernel_size) // stride + 1
     y_w = (w + 2*pad - kernel_size) // stride + 1
     output_shape = (b, c, y_h, y_w)
+    self.output_shape = output_shape
+    return output_shape
+
+class AvgPool1d(ClientModule):
+  
+  def __init__(self, crypto, comm, kernel_size, stride=None, padding=0):
+    super().__init__()
+    self.crypto = crypto
+    self.comm = comm
+    self.kernel_size = kernel_size
+    self.padding = padding
+    if stride is None: stride = kernel_size
+    self.stride = stride
+    self.static_prepare = self.prepare
+    self.static_forward = self.forward
+
+  def forward(self, x):
+    x = np.reshape(x, self.input_shape)
+    batchsize, channels, x_features = self.input_shape
+
+    if self.padding != 0:
+      pad = self.padding
+      expanded_x = np.zeros((batchsize, channels, x_features + pad*2), dtype=x.dtype)
+      expanded_x[:, :, pad:pad+x_features] = x
+      x = expanded_x
+      batchsize, channels, x_features = x.shape
+
+    kernel_size = self.kernel_size
+    stride = self.stride
+
+    y_features = (x_features - kernel_size) // stride + 1
+    
+    y = np.zeros((batchsize, channels, y_features), dtype=x.dtype)
+    for i in range(kernel_size):
+      ui = i + stride * y_features
+      y += x[:, :, i:ui:stride]
+
+    y = self.crypto.field_mod(y.flatten())
+    y = self.comm.divide(y, kernel_size)
+    return y
+  
+  def backward(self, partial_y):
+    partial_y = np.reshape(partial_y, self.output_shape)
+    batchsize, channels, y_features = self.output_shape
+    kernel_size = self.kernel_size
+    _, _, x_features = self.input_shape
+    pad = self.padding
+    stride = self.stride
+    px_features = x_features + pad*2
+    partial_x = np.zeros((batchsize, channels, px_features), dtype=partial_y.dtype)
+    for i in range(kernel_size):
+      ui = i + stride * y_features
+      partial_x[:, :, i:ui:stride] += partial_y
+    partial_x = partial_x[:, :, pad:pad+x_features]
+    partial_x = self.crypto.field_mod(partial_x.flatten())
+    partial_x = self.comm.divide(partial_x, kernel_size)
+    return partial_x
+
+  def prepare(self, input_shape):
+    self.input_shape = input_shape
+    k = self.kernel_size
+    b, c, h = input_shape
+    pad = self.padding
+    stride = self.stride
+    kernel_size = self.kernel_size
+    y_h = (h + 2*pad - kernel_size) // stride + 1
+    output_shape = (b, c, y_h)
     self.output_shape = output_shape
     return output_shape
 
@@ -1427,6 +1521,9 @@ def client_model_from_description(des, crypto, comm):
   elif t == "Conv2d":
     return Conv2d(crypto, comm, des["input_channels"], des["output_channels"], des["kernel_size"])
  
+  elif t == "Conv1d":
+    return Conv1d(crypto, comm, des["input_channels"], des["output_channels"], des["kernel_size"])
+ 
   elif t == "Conv2dStrided":
     return Conv2dStrided(crypto, comm, 
       des["input_channels"], des["output_channels"], 
@@ -1446,6 +1543,13 @@ def client_model_from_description(des, crypto, comm):
   
   elif t == "AvgPool2d":
     return AvgPool2d(crypto, comm, 
+      des["kernel_size"],
+      des["stride"],
+      des["padding"]
+    )
+  
+  elif t == "AvgPool1d":
+    return AvgPool1d(crypto, comm, 
       des["kernel_size"],
       des["stride"],
       des["padding"]

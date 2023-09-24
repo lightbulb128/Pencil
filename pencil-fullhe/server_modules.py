@@ -967,6 +967,51 @@ class Conv2dPadded(ServerModule):
     self.is_training = False
     self.inner.eval()
 
+class Conv1d(ServerModule):
+
+  def __init__(self, crypto: crypto.EvaluationUtils, comm: communication_server.ServerCommunication, input_channels, output_channels, kernel_size, bias=True):
+    super().__init__()
+    self.crypto = crypto
+    self.comm = comm
+    self.input_channels = input_channels
+    self.output_channels = output_channels
+    self.kernel_size = kernel_size
+    self.bias = bias
+    self.inner = Conv2d(crypto, comm, input_channels, output_channels, (kernel_size, 1), bias)
+
+  def prepare(self, input_shape):
+    self.input_shape = input_shape
+    batchsize, channels, input_features = input_shape
+    output_shape = self.inner.prepare((batchsize, channels, input_features, 1))
+    self.output_shape = (batchsize, self.output_channels, output_shape[2])
+    return self.output_shape
+  
+  def forward(self, x):
+    x = self.inner.forward(x)
+    return x
+  
+  def backward(self, partial_y):
+    partial_x = self.inner.backward(partial_y)
+    return partial_x
+  
+  def parameters(self):
+    return self.inner.parameters()
+  
+  def describe(self):
+    return {
+      "name": "Conv1d",
+      "input_channels": self.input_channels,
+      "output_channels": self.output_channels,
+      "kernel_size": self.kernel_size,
+    }
+  
+  def to_torch(self):
+    torch_module = torch.nn.Conv1d(self.input_channels, self.output_channels, self.kernel_size)
+    torch_module.weight.data = torch.tensor(self.inner.weight.value, dtype=torch.float32).reshape(torch_module.weight.data.shape)
+    if self.bias:
+      torch_module.bias.data = torch.tensor(self.inner.bias.value, dtype=torch.float32)
+    return torch_module
+
 class AvgPool2d(ServerModule):
   
   def __init__(self, crypto: crypto.EvaluationUtils, comm: communication_server.ServerCommunication, kernel_size, stride=None, padding=0):
@@ -1097,6 +1142,86 @@ class AvgPool2d(ServerModule):
     y_h = (h + 2*pad - kernel_size) // stride + 1
     y_w = (w + 2*pad - kernel_size) // stride + 1
     output_shape = (b, c, y_h, y_w)
+    self.output_shape = output_shape
+    return output_shape
+
+class AvgPool1d(ServerModule):
+  
+  def __init__(self, crypto: crypto.EvaluationUtils, comm: communication_server.ServerCommunication, kernel_size, stride=None, padding=0):
+    super().__init__()
+    self.crypto = crypto
+    self.comm = comm
+    self.kernel_size = kernel_size
+    self.padding = padding
+    if stride is None: stride = kernel_size
+    self.stride = stride
+    self.static_prepare = self.prepare
+    self.static_forward = self.forward
+
+  def forward(self, x):
+    x = np.reshape(x, self.input_shape)
+    batchsize, channels, x_features = self.input_shape
+
+    if self.padding != 0:
+      pad = self.padding
+      expanded_x = np.zeros((batchsize, channels, x_features + pad*2), dtype=x.dtype)
+      expanded_x[:, :, pad:pad+x_features] = x
+      x = expanded_x
+      batchsize, channels, x_features = x.shape
+
+    kernel_size = self.kernel_size
+    stride = self.stride
+
+    y_features = (x_features - kernel_size) // stride + 1
+    
+    y = np.zeros((batchsize, channels, y_features), dtype=x.dtype)
+    for i in range(kernel_size):
+      ui = i + stride * y_features
+      y += x[:, :, i:ui:stride]
+
+    y = self.crypto.field_mod(y.flatten())
+    y = self.comm.divide(y, kernel_size)
+    return y
+
+  def backward(self, partial_y):
+    partial_y = np.reshape(partial_y, self.output_shape)
+    batchsize, channels, y_features = self.output_shape
+    kernel_size = self.kernel_size
+    _, _, x_features = self.input_shape
+    pad = self.padding
+    stride = self.stride
+    px_features = x_features + pad*2
+    partial_x = np.zeros((batchsize, channels, px_features), dtype=partial_y.dtype)
+    for i in range(kernel_size):
+      ui = i + stride * y_features
+      partial_x[:, :, i:ui:stride] += partial_y
+    partial_x = partial_x[:, :, pad:pad+x_features]
+    partial_x = self.crypto.field_mod(partial_x.flatten())
+    partial_x = self.comm.divide(partial_x, kernel_size)
+    return partial_x
+
+  def parameters(self): return []
+
+  def describe(self):
+    return {
+      "name": "AvgPool1d",
+      "kernel_size": self.kernel_size,
+      "padding": self.padding,
+      "stride": self.stride
+    }
+
+  def to_torch(self):
+    return torch.nn.AvgPool1d(self.kernel_size, self.stride, self.padding)
+
+  def prepare(self, input_shape):
+    self.input_shape = input_shape
+    k = self.kernel_size
+    b, c, h = input_shape
+    pad = self.padding
+    stride = self.stride
+    kernel_size = self.kernel_size
+    y_h = (h + 2*pad - kernel_size) // stride + 1
+    output_shape = (b, c, y_h)
     self.output_shape = output_shape
     return output_shape
 
@@ -2270,6 +2395,29 @@ def server_model_from_pytorch(torch_model, crypto, comm):
       ret.bias.value = torch_model.bias.detach().cpu().numpy().copy()
       return ret
 
+  elif isinstance(torch_model, torch.nn.Conv1d):
+    stride = torch_model.stride[0]
+    pad = torch_model.padding[0]
+    assert(pad == 0)
+    assert(stride == 1)
+
+    input_channels = torch_model.weight.shape[1]
+    output_channels = torch_model.weight.shape[0]
+    kernel_size = torch_model.weight.shape[2]
+
+    ret = Conv1d(crypto, comm,
+      input_channels,
+      output_channels,
+      kernel_size,
+    )
+
+    ret.inner.weight.value = (
+      torch_model.weight.detach().cpu().numpy().copy()
+      .reshape((output_channels, input_channels, kernel_size, 1))
+    )
+    ret.inner.bias.value = torch_model.bias.detach().cpu().numpy().copy()
+    return ret
+    
   elif isinstance(torch_model, torch.nn.Sequential):
     modules = []
     for each in torch_model.children():
@@ -2289,6 +2437,21 @@ def server_model_from_pytorch(torch_model, crypto, comm):
       torch_model.kernel_size,
       torch_model.stride,
       torch_model.padding
+    )
+
+  elif isinstance(torch_model, torch.nn.AvgPool1d):
+    return AvgPool1d(crypto, comm, 
+      torch_model.kernel_size[0],
+      torch_model.stride[0],
+      torch_model.padding[0]
+    )
+
+  elif isinstance(torch_model, torch.nn.MaxPool1d):
+    print("Warning: MaxPool1d converted to AvgPool1d")
+    return AvgPool1d(crypto, comm, 
+      torch_model.kernel_size[0],
+      torch_model.stride[0],
+      torch_model.padding[0]
     )
 
   elif isinstance(torch_model, torch.nn.BatchNorm2d):

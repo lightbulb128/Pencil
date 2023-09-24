@@ -1,7 +1,4 @@
-# clone 
-git clone https://github.com/lightbulb128/OpenCheetah.git
 cd OpenCheetah
-git checkout 43f0064ec71b6714a298f4acdc74dcf7fa99a8f1
 
 # clone and build dependencies
 bash scripts/build-deps.sh

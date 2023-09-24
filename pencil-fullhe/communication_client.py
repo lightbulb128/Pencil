@@ -44,7 +44,7 @@ class ClientCommunication:
 
   def recv(self):
     obj_bytes = recv_msg(self.connection)
-    self.transferred += len(obj_bytes)
+    self.transferred += len(obj_bytes) 
     return pickle.loads(obj_bytes)
 
   def clear_accumulation(self):
