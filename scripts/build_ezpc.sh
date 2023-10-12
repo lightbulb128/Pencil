@@ -1,4 +1,5 @@
 cd EzPC/SCI/extern
+git submodule update --init --recursive
 
 git clone https://github.com/pybind/pybind11.git
 

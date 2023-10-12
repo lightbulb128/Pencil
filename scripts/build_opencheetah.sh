@@ -1,4 +1,5 @@
 cd OpenCheetah
+git submodule update --init --recursive
 
 # clone and build dependencies
 bash scripts/build-deps.sh
