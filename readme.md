@@ -21,11 +21,10 @@ Therefore, the repository has
 
 ### Building
 
-For ease of use, juse run
+For ease of use, just run
 ```bash
-bash scripts/build_dependencies
+bash scripts/build_dependencies.sh
 ```
-This requires `sudo` privilige as it needs to install SEAL and GPU assisted utilities.
 
 ## Artifact evaluation
 
