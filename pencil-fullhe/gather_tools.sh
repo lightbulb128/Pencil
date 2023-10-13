@@ -8,4 +8,4 @@ cp ${CHEETAH_LIBRARY_PATH}/cheetah_provider*.so tools/
 
 cp ${SCI_LIBRARY_PATH}/sci_provider*.so tools/
 
-cp ${CUDA_CKKS_NEW_PATH}/binder/pytroy.cpython-38-x86_64-linux-gnu.so tools/
+cp ${CUDA_CKKS_NEW_PATH}/binder/pytroy*.so tools/

@@ -15,7 +15,7 @@ Therefore, the repository has
 
 ### Requirements
 * g++ 11.4.0
-* python 3.8 `numpy pickle torch torchvision torchtext`
+* python 3.8 or higher with `cmake numpy pickle torch torchvision torchtext`
 * cmake 3.27.2
 * CUDA 11.7 and a supporting GPU device
 
@@ -24,6 +24,13 @@ Therefore, the repository has
 For ease of use, just run
 ```bash
 bash scripts/build_dependencies.sh
+```
+
+If you encounter any building problems, you could try building the three dependencies individually to locate the problem.
+```bash
+bash scripts/build_opencheetah.sh
+bash scripts/build_seal_cuda.sh
+bash scripts/build_ezpc.sh
 ```
 
 ## Artifact evaluation
