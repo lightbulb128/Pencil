@@ -21,17 +21,25 @@ Therefore, the repository has
 
 ### Building
 
-For ease of use, just run
-```bash
-bash scripts/build_dependencies.sh
-```
+1. Building the dependencies.
 
-If you encounter any building problems, you could try building the three dependencies individually to locate the problem.
-```bash
-bash scripts/build_opencheetah.sh
-bash scripts/build_seal_cuda.sh
-bash scripts/build_ezpc.sh
-```
+    For ease of use, just run
+    ```bash
+    bash scripts/build_dependencies.sh
+    ```
+
+    If you encounter any building problems, you could try building the three dependencies individually to locate the problem.
+    ```bash
+    bash scripts/build_opencheetah.sh
+    bash scripts/build_seal_cuda.sh
+    bash scripts/build_ezpc.sh
+    ```
+
+2. Install `libtroy.so`.
+
+    After building the dependencies, this shared library can be found in `./seal-cuda/build/src/libtroy.so`. 
+
+    If you have root privilige, you could copy it or create its soft link in `/usr/local/lib` or `/usr/lib`; otherwise, you can put it in any directory and add the directory to `LD_LIBRARY_PATH` by running `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/the/file` (This is temporary; for permanant change, you could add it to your `~/.bashrc` file).
 
 ## Artifact evaluation
 
