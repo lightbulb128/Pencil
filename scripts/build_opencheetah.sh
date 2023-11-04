@@ -10,9 +10,7 @@ git clone https://github.com/pybind/pybind11.git
 cd ../..
 
 # cmake and build opencheetah
-cd build
-cmake ..
-make
+bash scripts/build.sh
 
 # return to top directory
 cd ../..
