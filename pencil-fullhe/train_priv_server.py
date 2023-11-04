@@ -110,6 +110,8 @@ if __name__ == "__main__":
         if direction == "save":
             name = comm.recv()
             torch_model = model.to_torch()
+            if not os.path.exists("checkpoints"):
+                os.mkdir("checkpoints")
             torch.save(torch_model.state_dict(), f"checkpoints/priv-{model_name}-{name}.pt")
 
     # close connection
