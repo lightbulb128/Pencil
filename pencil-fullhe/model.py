@@ -62,16 +62,6 @@ def get_model_resnet50_classifier(dropout=0.5, num_classes=10):
         nn.Linear(256, num_classes),
     )
 
-def get_model_resnet50_cifar100_classifier(dropout=0.5, num_classes=100):
-    fe = torch_models.TorchNative("resnet50-fe")
-    fe.requires_grad_(False)
-    return torch.nn.Sequential(
-        fe,
-        nn.Flatten(),
-        # nn.Dropout(p=dropout),
-        nn.Linear(2048, num_classes),
-    )
-
 def get_model_densenet121_classifier(dropout=0.5, num_classes=10):
     fe = torch_models.TorchNative("densenet121-fe")
     fe.requires_grad_(False)
@@ -202,6 +192,23 @@ def get_model_agnews_cnn():
         torch.nn.Linear(128 * 13, 4),
     )
 
+def get_model_agnews_gpt2():
+    return torch.nn.Sequential(
+        torch.nn.Linear(768, 128),
+        torch.nn.ReLU(), 
+        torch.nn.Linear(128, 128),
+        torch.nn.ReLU(), 
+        torch.nn.Linear(128, 4),
+    )
+
+def get_model_paysim():
+    return torch.nn.Sequential(
+        torch.nn.Linear(77, 64),
+        torch.nn.ReLU(), 
+        torch.nn.Linear(64, 2),
+    )
+    
+
 def get_model(name = "cifar10_lenet5"):
     model_funcs = {
         "mnist_aby3": get_model_mnist_aby3,
@@ -217,13 +224,15 @@ def get_model(name = "cifar10_lenet5"):
         "densenet121_classifier": get_model_densenet121_classifier, 
         "agnews_mlp": get_model_agnews_mlp,
         "agnews_cnn": get_model_agnews_cnn,
-        "resnet50_cifar100_classifier": get_model_resnet50_cifar100_classifier,
+        "agnews_gpt2": get_model_agnews_gpt2,
+        "paysim": get_model_paysim,
     }
     return name, model_funcs[name]()
 
 def get_dataset(x):
-    if "cifar100" in x: return "cifar100", (64, 3, 32, 32)
     if x == "alexnet": return "cifar10-224", (1, 3, 224, 224)
+    if x == "paysim": return "paysim", (64, 77)
+    if x == "agnews_gpt2": return "agnews-gpt2", (32, 768)
     if "agnews" in x: return "agnews", (32, 256, 64)
     if "classifier" in x: return "cifar10-224", (64, 3, 224, 224)
     if "cifar10" in x: return "cifar10-32", (64, 3, 32, 32)

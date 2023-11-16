@@ -9,6 +9,8 @@ import os
 import pickle
 from tqdm import tqdm
 
+EMBEDDING_DIMS = 256
+
 def cut_list(target, amount = None):
   if amount is None:
     return target
