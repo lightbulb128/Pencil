@@ -1,5 +1,8 @@
 # Pencil 
-**Private and extensible collaborative NN training framework**
+**Pencil: Private and Extensible Collaborative Learning without the Non-Colluding Assumption**
+
+Pencil is published in NDSS 2024 =>
+[[Paper link]](https://www.ndss-symposium.org/ndss-paper/pencil-private-and-extensible-collaborative-learning-without-the-non-colluding-assumption/)
 
 ## Overview
 
