@@ -73,7 +73,7 @@ class Flatten(ClientModule):
     return partial_y
       
   def prepare(self, input_shape): 
-    return (input_shape[0], np.product(input_shape[1:]))
+    return (input_shape[0], np.prod(input_shape[1:]))
 
 class Linear(ClientModule):
 
@@ -88,9 +88,9 @@ class Linear(ClientModule):
       self.input_shape = (batchsize, input_dims)
       self.output_shape = (batchsize, output_dims)
       self.weight_shape = (input_dims, output_dims)
-      self.input_size = np.product(self.input_shape)
-      self.output_size = np.product(self.output_shape)
-      self.weight_size = np.product(self.weight_shape)
+      self.input_size = np.prod(self.input_shape)
+      self.output_size = np.prod(self.output_shape)
+      self.weight_size = np.prod(self.weight_shape)
       self.crypto = crypto
       self.comm = comm
       self.amount = 0
@@ -270,9 +270,9 @@ class Conv2d(ClientModule):
       self.input_shape = (batchsize, input_channels, image_height, image_width)
       self.output_shape = (batchsize, output_channels, image_height - kernel_height + 1, image_width - kernel_width + 1)
       self.weight_shape = (output_channels, input_channels, kernel_height, kernel_width)
-      self.input_size = np.product(self.input_shape)
-      self.output_size = np.product(self.output_shape)
-      self.weight_size = np.product(self.weight_shape)
+      self.input_size = np.prod(self.input_shape)
+      self.output_size = np.prod(self.output_shape)
+      self.weight_size = np.prod(self.weight_shape)
       self.crypto = crypto
       self.comm = comm
       self.amount = 0

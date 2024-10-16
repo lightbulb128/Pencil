@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
         if direction == "train":
             model.train()
-            x = np.zeros(np.product(input_shape), dtype=np.uint64)
+            x = np.zeros(np.prod(input_shape), dtype=np.uint64)
             output = model.forward(x)
             comm.send(output)
             optim.zero_grad()

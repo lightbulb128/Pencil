@@ -114,7 +114,7 @@ class Flatten(ClientModule):
     return partial_y
       
   def prepare(self, input_shape): 
-    return (input_shape[0], np.product(input_shape[1:]))
+    return (input_shape[0], np.prod(input_shape[1:]))
 
 class Linear(ClientModule):
 

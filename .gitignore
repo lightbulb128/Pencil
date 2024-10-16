@@ -1,3 +1,4 @@
 logs/
 data/
 .vscode/
+run_docker.sh

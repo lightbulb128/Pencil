@@ -136,10 +136,10 @@ class Flatten(ServerModule):
   def parameters(self): return []
   def to_torch(self): return torch.nn.Flatten()
   def prepare(self, input_shape): 
-    return (input_shape[0], np.product(input_shape[1:]))
+    return (input_shape[0], np.prod(input_shape[1:]))
   def trusted_prepare(self, input_shape):
     print(f"Flatten: {input_shape}")
-    return (input_shape[0], np.product(input_shape[1:]))
+    return (input_shape[0], np.prod(input_shape[1:]))
 
 
 class Linear(ServerModule):
@@ -155,9 +155,9 @@ class Linear(ServerModule):
       self.input_shape = (batchsize, input_dims)
       self.output_shape = (batchsize, output_dims)
       self.weight_shape = (input_dims, output_dims)
-      self.input_size = np.product(self.input_shape)
-      self.output_size = np.product(self.output_shape)
-      self.weight_size = np.product(self.weight_shape)
+      self.input_size = np.prod(self.input_shape)
+      self.output_size = np.prod(self.output_shape)
+      self.weight_size = np.prod(self.weight_shape)
       self.crypto = crypto
       self.comm = comm
       self.amount = 0
@@ -183,7 +183,7 @@ class Linear(ServerModule):
       else:
         u_encoded = self.crypto.matmul_encode_x(helper, u)
         product_cipher = self.crypto.matmul(helper, u_encoded, v_cipher)
-      output_size = np.product(self.output_shape)
+      output_size = np.prod(self.output_shape)
       s = self.crypto.field_random_mask(output_size)
       s_encoded = self.crypto.matmul_encode_y(helper, s)
       self.crypto.add_plain_inplace(product_cipher, s_encoded)
@@ -457,9 +457,9 @@ class Conv2d(ServerModule):
       self.input_shape = (batchsize, input_channels, image_height, image_width)
       self.output_shape = (batchsize, output_channels, image_height - kernel_height + 1, image_width - kernel_width + 1)
       self.weight_shape = (output_channels, input_channels, kernel_height, kernel_width)
-      self.input_size = np.product(self.input_shape)
-      self.output_size = np.product(self.output_shape)
-      self.weight_size = np.product(self.weight_shape)
+      self.input_size = np.prod(self.input_shape)
+      self.output_size = np.prod(self.output_shape)
+      self.weight_size = np.prod(self.weight_shape)
       self.crypto = crypto
       self.comm = comm
       self.amount = 0
@@ -484,7 +484,7 @@ class Conv2d(ServerModule):
       else:
         u_encoded = self.crypto.conv2d_encode_x(helper, u)
         product_cipher = self.crypto.conv2d(helper, u_encoded, v_cipher)
-      output_size = np.product(self.output_shape)
+      output_size = np.prod(self.output_shape)
       s = self.crypto.field_random_mask(output_size)
       s_encoded = self.crypto.conv2d_encode_y(helper, s)
       self.crypto.add_plain_inplace(product_cipher, s_encoded)
