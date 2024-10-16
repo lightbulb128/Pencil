@@ -19,6 +19,14 @@ RUN pip install "torch<2.4.0" torchvision torchtext transformers
 # Default python version
 RUN ln -s /usr/bin/python3.10 /usr/bin/python
 
+# Need libstdc++ so install build-essential
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test \
+    && apt-get update \
+    && apt-get install g++-11 -y
+
+# Make python3.10 as the default python3
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
+
 # Install openssl
 RUN cd /tmp && \
     wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/openssl_1.1.1f-1ubuntu2_amd64.deb && \
@@ -46,11 +54,3 @@ RUN mkdir /tmp/library-files && unzip /tmp/library-files.zip -d /tmp/library-fil
 
 # Add the library path to LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH=/root/Pencil/pencil-fullhe/tools:$LD_LIBRARY_PATH
-
-# Need libstdc++ so install build-essential
-RUN add-apt-repository ppa:ubuntu-toolchain-r/test \
-    && apt-get update \
-    && apt-get install g++-11 -y
-
-# Make python3.10 as the default python3
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
